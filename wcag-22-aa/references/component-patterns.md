@@ -59,16 +59,16 @@ Contents: 1 Page shell · 2 Buttons & links · 3 Images & icons · 4 Forms · 5 
 ## 4. Forms (1.3.1, 1.3.5, 2.4.6, 3.3.2, 3.2.2)
 ```html
 <form novalidate>
-  <p id="req-note">Fields marked <span aria-hidden="true">*</span> are required.</p>
+  <p id="req-note">Every field is marked Required or Optional.</p>
   <div class="field">
-    <label for="email">Email <span aria-hidden="true">*</span></label>
+    <label for="email">Email <span>(Required)</span></label>
     <p id="email-hint" class="hint">We'll send the receipt here.</p>
     <input id="email" name="email" type="email" autocomplete="email" required
            aria-describedby="email-hint">
   </div>
 
   <fieldset>
-    <legend>Delivery speed</legend>
+    <legend>Delivery speed (Required)</legend>
     <input type="radio" id="std" name="speed" value="std"><label for="std">Standard (3–5 days)</label>
     <input type="radio" id="exp" name="speed" value="exp"><label for="exp">Express (1 day)</label>
   </fieldset>
@@ -76,6 +76,7 @@ Contents: 1 Page shell · 2 Buttons & links · 3 Images & icons · 4 Forms · 5 
   <button type="submit">Place order</button>
 </form>
 ```
+- Team standard: every editable field/group visibly says Required or Optional; conditional requirements must be explicit. Native `required` / supported `aria-required` states must agree with the actual validation.
 - Every input has a persistent visible `<label>`. Placeholder is never the label.
   Floating-label patterns must keep the label visible and contrast-compliant.
 - Group related controls (radios, checkbox sets, date parts, address) with
@@ -94,25 +95,21 @@ Contents: 1 Page shell · 2 Buttons & links · 3 Images & icons · 4 Forms · 5 
 <input id="email" aria-invalid="true" aria-describedby="email-hint email-error" autocomplete="email">
 <p id="email-error" class="error"><svg aria-hidden="true">…</svg> Enter an email address in the format name@example.com</p>
 ```
-- On submit with errors, move focus deliberately (never leave it on `<body>`):
-  - **One invalid field:** focus that field.
-  - **Several invalid fields:** render the summary, focus it (`summary.focus()`), each link
-    jumps to its field. Equivalent alternative: focus the first invalid field in DOM order,
-    with every error inline.
-- Server-action / re-rendering forms (Next.js, Rails, etc.) lose focus on re-render. Wire
-  the focus move explicitly after the result arrives.
-- Don't disable the submit button while the request is pending — a disabled button that has
-  focus blurs to `<body>`. Use `aria-disabled="true"` and ignore repeat activations, or
-  move focus to a status message once it finishes.
+- Team standard: on failed submit, preserve values and focus the first invalid field after rendering all linked inline errors. An optional summary may announce the count/provide field links, but must not move focus away from that field. WCAG requires accessible error identification; first-invalid-field focus is this team’s chosen contract.
+- Server-action / re-rendering forms can lose focus when controls are replaced. Restore
+  the intended focus explicitly after rendering the result.
+- While a request is pending, prevent duplicate submissions and verify focus stays
+  logical. If disabling or replacing the focused submit button loses focus in supported
+  browsers, keep it focusable with `aria-disabled="true"` and guard repeat activations,
+  or move focus deliberately when the result requires it.
 - Inline errors: text (not color alone) + icon, `aria-invalid="true"`, referenced in
   `aria-describedby`. Clear both when fixed.
 - Validate on submit or on blur — not on every keystroke while the user is still typing.
 - Messages say what's wrong **and** how to fix it (3.3.3): "Enter an email address like
-  name@example.com", not "Invalid email" or "A valid email is required". Name the field
-  in the message when it appears in a summary. Server/network errors say what happened and
-  what to do next ("We couldn't save your answer. Check your connection and try again").
-- The message sits next to its field and is linked with `aria-describedby`; the field has
-  `aria-invalid="true"`. A bare `<p>` under the form is a failure of 1.3.1/3.3.1 in practice.
+  name@example.com", not "Invalid email". Name the field in summaries. Server/network
+  errors explain what happened and what to do next ("We couldn't save your answer.
+  Check your connection and try again"). Link field-specific errors to their fields;
+  operation-level errors belong in an appropriately announced status/error region.
 - Legal/financial/data-deleting actions: review step or confirmation or undo (3.3.4).
 
 ## 6. Dialogs (2.1.2, 2.4.3, 2.4.11, 4.1.2)
@@ -136,6 +133,13 @@ d.addEventListener('close', () => t.focus());         // return focus to trigger
   (`tabindex="-1"`) for long content.
 - Always a visible close/cancel control. Return focus to the trigger (or a logical place if
   the trigger was removed).
+- Team standard: lock background wheel/touch scrolling for native and custom
+  modals, allow internal scrolling, contain overscroll and restore the original
+  background scroll position on every close/removal/error path. Retain the lock
+  until the last modal closes. Do not equate keyboard trapping with scroll locking.
+- Select/listbox popups close when focus exits the entire control/popup; preserve
+  selection and normal Tab/Shift+Tab progression. Do not close on internal option
+  focus changes. Native selects manage their own popup behavior.
 - Non-modal popups must not cover the focused element (2.4.11).
 
 ## 7. Disclosure & accordion (4.1.2, 2.1.1)
@@ -298,14 +302,16 @@ non-negotiables:
   - The heading and page title describe the *current state* ("Your plan is being built"),
     not the action that started it ("Start a new plan").
   - Show visible progress: an indeterminate indicator with a name (`role="progressbar"` with
-    no value, or a labelled spinner), the start time and the expected duration.
+    no value, or a labelled spinner). Where useful and known, give the start time and
+    expected duration; do not invent estimates.
   - Say where the result will appear and whether the user can leave ("You can leave this
     page; we'll email you and add it to Your plans").
   - Put the status in a **persistent** live region (see `aria.md` §7) and move focus to the
-    status heading after submit. When the job ends, announce it ("Your plan is ready") and
+    status heading after submit when needed to orient the user. When the job ends, announce it ("Your plan is ready") and
     offer a link; if the page polls, don't re-render the region in a way that re-announces.
-  - Don't format dates ambiguously (`10/28/2026`); use "28 Oct 2026".
-  - Provide a way out for jobs that can stall (Cancel after a sensible time).
+  - Team standard: don't format dates ambiguously (`10/28/2026`); use "28 Oct 2026".
+  - Where cancellation is supported, provide Cancel and explain its effect. For a
+    stalled job, offer a supported recovery action without implying work was rolled back.
 - **Blocking "please wait" overlays** that cannot be dismissed still follow the dialog rules
   in §6: move focus inside (or to the status text), keep it contained, lock page scroll,
   restore focus to the triggering control afterwards. Prefer an inline status for anything
@@ -325,9 +331,11 @@ non-negotiables:
 - Measure against the **actual page background** (a card, a tinted canvas), not white.
 - Text drawn over a data fill (axis labels over a radar polygon, labels on bars) is tested
   against the *blended* colour; avoid overlap or give it a halo/background.
-- Chart text ≥ 12 px and not colliding with other labels; a chart rendered tiny in a wide
-  column is a legibility failure even when ratios pass.
-- Check what the library adds. Recharts 3 defaults to `<svg role="application" tabindex="0">`
-  with no name: set `accessibilityLayer={false}` and provide a table (sr-only or visible) when
-  the chart is `aria-hidden`; if the chart stays exposed, give it `role="img"` and a label.
-  Never leave a focusable, unnamed chart surface.
+- Team standard: aim for chart text of at least 12 CSS px at the default size; prevent
+  label collisions and verify enlargement/reflow. WCAG does not set a universal minimum
+  font size; assess the applicable contrast, resize and reflow criteria.
+- Inspect the actual DOM and accessibility tree produced by the installed chart library.
+  Never leave an unnamed focusable chart surface. If a redundant chart is hidden from
+  assistive technology, also remove its focusability and provide equivalent data in a
+  table. Use `role="img"` with a name for a static exposed chart; interactive charts need
+  appropriate semantics and keyboard behavior, not a blanket role override.

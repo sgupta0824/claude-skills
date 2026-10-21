@@ -68,6 +68,9 @@ layout or visual style, only the constraints any design must satisfy.
 4. **Focus** — focus is always visible, never removed without a replacement, never
    fully hidden behind sticky headers, footers, banners or overlays (2.4.11), and is
    moved deliberately when content opens, closes or the route changes.
+   **Team standard:** dismiss select/listbox popups when focus leaves the whole
+   control/popup without stealing focus or changing selection. Preserve option
+   navigation inside the popup; prefer native selects.
 5. **Structure** — real headings, lists, landmarks, tables and label associations;
    DOM/reading order matches visual order.
 6. **Text alternatives** — informative images have meaningful alt text; decorative
@@ -78,11 +81,18 @@ layout or visual style, only the constraints any design must satisfy.
    standard on mobile: 44×44 pt (iOS) / 48×48 dp (Android).
 9. **Reflow & resize** — works at 320 CSS px width and 200% text size, and survives the
    text-spacing overrides, with no loss of content or function. Native: supports
-   Dynamic Type / font scaling and both orientations.
+   Dynamic Type / font scaling and both orientations. Never disable user zoom.
+   For extensions, verify zoom in/out in actual side-panel and bottom/side/
+   undocked DevTools hosts; see `references/testing.md`. An ordinary extension
+   tab is not native-host zoom evidence.
 10. **Forms** — persistent visible labels, programmatic hints and errors, `autocomplete`
    / content-type tokens for personal data, errors identified in text with
-   suggestions that say how to fix them, linked to the field (`aria-invalid` + `aria-describedby`), focus moved to
-   the first invalid field or an error summary after a failed submit, no re-entry of already provided data (3.3.7).
+   suggestions, no re-entry of already provided data (3.3.7).
+   **Team standard:** every editable field/group says Required or Optional,
+   matching the actual rule, including conditional requirements. On failed
+   submit, preserve values, render linked inline errors next to invalid fields,
+   and focus the first invalid field. An optional summary must not compete for
+   focus; this focus rule is the team's contract, not a universal WCAG mandate.
 11. **Authentication** — allow paste and password managers; no puzzles, transcription
     or memory tests unless an alternative exists (3.3.8).
 12. **Pointer** — no path-based or multi-point gesture without a single-pointer
@@ -98,6 +108,16 @@ layout or visual style, only the constraints any design must satisfy.
     and in the same relative order across screens (3.2.3, 3.2.4, 3.2.6).
 16. **Language & titles** — page/screen language set; unique, descriptive page titles
     or screen titles.
+
+### Modal scroll isolation (team standard)
+Native `<dialog>` inertness does not guarantee scroll isolation. While any
+modal is open, block background mouse/touch scrolling, preserve internal
+scrolling and stop scroll chaining at its boundaries. Preserve background
+position and restore scrolling on all close/error/removal paths, including
+nested dialogs; closing a child must not unlock the parent's background.
+Do not lock the background for an inline, non-modal picker. Keep keyboard
+focus containment, dismissal, focus restoration and browser zoom usable.
+Verify real wheel/touch input as well as keyboard; see `references/testing.md`.
 
 ### 3. Design-agnostic rule
 Never invent brand colors, fonts or layouts. If a supplied token, color pair or design

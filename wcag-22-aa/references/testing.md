@@ -48,12 +48,13 @@ test('dialog state is scanned too', async ({ page }) => {
 Axe scans a page at rest; most real failures appear after an action. For every form, async
 action, route change and overlay, drive it and record:
 - **Where focus lands** after submit, error, success and navigation (`document.activeElement`).
-  `<body>` is a failure.
+  Unexpected focus loss to `<body>` after an interaction needs investigation.
 - **Whether the message is announced:** observe DOM insertions (`MutationObserver`) and check
   that each new message is inside a live region that *already existed* before the text.
   A `role="status"` node inserted together with its text is not reliable.
 - **Error states:** field has `aria-invalid` and `aria-describedby`; message says how to fix
-  it; focus goes to the first invalid field or the summary.
+  it; focus goes to the first invalid field under this team's contract; an optional
+  summary must not steal focus.
 - **Route changes:** `document.title` differs per page; focus or announcement tells the user
   the page changed.
 - **Overlays/dialogs:** Tab stays inside, Esc/Cancel/Close dismiss, focus returns to the
@@ -62,7 +63,8 @@ action, route change and overlay, drive it and record:
   fill/label colours against the real background, and check for unnamed focusable SVGs.
 - **Long-running states:** put the page in the "in progress" state (fake the DB row) and scan
   and screenshot it.
-Run it once keyboard-only and, for announcements, with a real screen reader.
+DOM timing checks do not establish actual speech. Run the relevant flow keyboard-only
+and verify announcements with a real screen reader.
 
 ### Component tests (`jest-axe` / `vitest-axe`)
 ```js
@@ -96,10 +98,19 @@ violations via the Storybook test runner.
 - [ ] Focus is always visible and never fully hidden under sticky bars/banners
 - [ ] Enter/Space/arrows/Esc behave per `aria.md` §4
 - [ ] Dialogs trap focus, close with Esc, return focus to the trigger
+- [ ] Select/listbox popup dismisses on Tab/Shift+Tab/focus exit from the entire
+      control; internal option navigation remains operable and selected value unchanged
+- [ ] Team standard: real wheel/touch scrolling cannot move modal backgrounds,
+      including nested dialogs; internal modal scrolling and overscroll containment
+      work; closing/removing the last dialog restores prior scrolling/position
 - [ ] No traps; skip link works
 
 **Zoom, reflow, spacing (1.4.4, 1.4.10, 1.4.12, 1.3.4)**
-- [ ] Browser zoom 200%: nothing clipped or overlapping
+- [ ] Browser zoom 200%: nothing clipped or overlapping; user zoom in/out is never disabled
+- [ ] Extension hosts: test actual side panel, bottom/side dock and undocked DevTools
+      zoom controls/shortcuts, 200% text and 320px reflow; record browser/OS/actual
+      content dimensions. Ordinary extension-tab tests do not establish native-host
+      zoom support. Report unavailable controls/platforms as verification gaps.
 - [ ] 400% zoom at 1280 px (or 320 px viewport): single column, no horizontal scroll (except
       tables/maps/code), sticky bars don't take over the viewport
 - [ ] Text-spacing override (paste into the console or a bookmarklet):
@@ -119,7 +130,11 @@ document.head.appendChild(s);
 - [ ] Alt text accurate and concise; decorative images silent
 - [ ] Nothing conveyed by color, shape or position alone
 - [ ] Headings and labels describe purpose; links make sense in context
-- [ ] Submit an invalid form: errors in text, linked to fields, focus to summary, suggestions
+- [ ] Submit an invalid form: preserve values, visible inline error beside every
+      invalid field, linked descriptions/invalid state, helpful suggestions;
+      team standard: focus the first invalid field, not an optional summary
+- [ ] Every editable field/group explicitly says Required or Optional; actual
+      validation and programmatic states match, including conditional requirements
 - [ ] Previously entered data not requested again in the same flow (3.3.7)
 - [ ] Login allows paste and password managers (3.3.8)
 
@@ -168,7 +183,7 @@ visual order.
 - [ ] Needs human verification: ______ (alt text, captions, reading order…)
 ```
 
-## 5. Verification report format (end of every Claude response that changes UI)
+## 5. Verification report format (end of every agent response that changes UI)
 
 ```markdown
 **Accessibility notes**
