@@ -45,6 +45,15 @@ test('dialog state is scanned too', async ({ page }) => {
   a test can't find an element by role and name, neither can a screen reader user.
 
 ### Behavioural pass (what axe cannot see)
+
+For manual tabs with guarded transitions, arrow to another tab and verify focus
+moves without changing the selected panel or opening a leave dialog. Activate it
+explicitly; test cancel, successful save/discard, invalid input and failed save.
+Only successful transitions may select the destination. Check Tab exit/re-entry,
+inactive-panel exclusion and responsive orientation changes while a draft exists.
+These are workflow regressions; automated state checks do not establish spoken
+screen-reader output.
+
 Axe scans a page at rest; most real failures appear after an action. For every form, async
 action, route change and overlay, drive it and record:
 - **Where focus lands** after submit, error, success and navigation (`document.activeElement`).

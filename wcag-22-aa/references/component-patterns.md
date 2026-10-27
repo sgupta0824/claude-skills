@@ -159,8 +159,19 @@ d.addEventListener('close', () => t.focus());         // return focus to trigger
 <div role="tabpanel" id="p-profile" aria-labelledby="t-profile" tabindex="0">…</div>
 <div role="tabpanel" id="p-billing" aria-labelledby="t-billing" tabindex="0" hidden>…</div>
 ```
-- Left/Right arrows move between tabs (roving tabindex), Home/End to ends; automatic
-  activation unless loading a panel is expensive (then Enter/Space activates).
+- Left/Right arrows move focus in horizontal lists; Up/Down in vertical lists.
+  Home/End reach the ends. Keep `aria-orientation` and keys aligned on responsive
+  layout changes without moving focus or changing selection.
+- Automatic activation is appropriate when displaying a panel has no noticeable
+  delay or guarded side effect. Use manual activation (Enter/Space) when focus
+  would otherwise trigger expensive loading, unsaved-edit decisions or confirmation.
+  With manual activation, arrow focus and `aria-selected` are distinct: select and
+  expose the destination only after activation succeeds. Cancellation/failure keeps
+  the current panel, draft and logical focus; preserve first-invalid-field focus.
+- Keep one roving Tab stop while navigating tabs. Define re-entry at the selected
+  tab and Tab exit into the active panel; hide inactive panels and their controls.
+  Verify guarded activation, cancellation, saving/failure and orientation changes;
+  see `testing.md` § Behavioural pass.
 - If "tabs" actually navigate to different URLs, use `<nav>` links with `aria-current="page"`.
 
 ## 9. Navigation & menus (2.4.3, 2.1.1, 3.2.3)
