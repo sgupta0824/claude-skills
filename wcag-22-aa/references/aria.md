@@ -121,8 +121,11 @@ States must be **updated in sync** with the visual state on every change.
 ## 5. Focus management techniques
 
 - **Roving tabindex:** in a composite widget (tabs, toolbar, radio group, menu), only the
-  active item has `tabindex="0"`; others `tabindex="-1"`. Arrow keys move `tabindex="0"` and
-  call `.focus()`. Tab leaves the widget.
+  focused navigation item has `tabindex="0"`; others `tabindex="-1"`. Arrow keys move
+  `tabindex="0"` and call `.focus()`. Tab leaves the widget. In manually activated
+  tabs this focused item may differ from the selected tab: update `aria-selected`
+  only on successful activation, and restore the selected tab as the re-entry stop
+  when focus leaves the tablist.
 - **`aria-activedescendant`:** DOM focus stays on the container/input; the attribute points
   to the id of the visually active option. Used for combobox listboxes. The referenced
   element must be in the DOM and have a visible active style.
